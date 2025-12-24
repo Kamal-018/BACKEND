@@ -3,14 +3,32 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 
 const app = express()
+import fs from 'fs';
+
+app.use((req, res, next) => {
+    const log = `[${new Date().toISOString()}] ${req.method} ${req.url}\n`;
+    console.log(log.trim());
+    try {
+        fs.appendFileSync('request.log', log);
+    } catch (e) { }
+    next();
+});
+
+app.get('/test-root', (req, res) => {
+    res.send('Backend is running!');
+});
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin, callback) {
+        console.log("CORS Origin:", origin);
+        // Allow all for testing simple frontend
+        return callback(null, true);
+    },
     credentials: true
 }))
 
-app.use(express.json({limit: "16kb"}))
-app.use(express.urlencoded({extended: true, limit: "16kb"}))
+app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
