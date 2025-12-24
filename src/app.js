@@ -18,14 +18,30 @@ app.get('/test-root', (req, res) => {
     res.send('Backend is running!');
 });
 
-app.use(cors({
-    origin: function (origin, callback) {
-        console.log("CORS Origin:", origin);
-        // Allow all for testing simple frontend
-        return callback(null, true);
-    },
-    credentials: true
-}))
+
+const corsOptions = {
+  origin: function (origin, callback) {
+   
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'kamalkhatri.netlify.app',  
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,  // Allow cookies to be sent
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
