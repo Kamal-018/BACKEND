@@ -1,13 +1,13 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-
 const app = express()
 import fs from 'fs';
 
 app.use((req, res, next) => {
     const log = `[${new Date().toISOString()}] ${req.method} ${req.url}\n`;
     console.log(log.trim());
+    console.log('CORS Origin:', req.headers.origin); // Add this to debug
     try {
         fs.appendFileSync('request.log', log);
     } catch (e) { }
@@ -18,25 +18,26 @@ app.get('/test-root', (req, res) => {
     res.send('Backend is running!');
 });
 
-
 const corsOptions = {
   origin: function (origin, callback) {
-   
+    console.log('Checking origin:', origin); // Debug log
+    
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
-      'kamalkhatri.netlify.app',  
+      'https://kamalkhatri.netlify.app',  // ✅ Fixed: Added https://
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('Origin blocked:', origin); // Debug log
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,  // Allow cookies to be sent
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
@@ -47,7 +48,6 @@ app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 app.use(express.static("public"))
 app.use(cookieParser())
-
 
 //routes import
 import userRouter from './routes/user.routes.js'
@@ -70,7 +70,5 @@ app.use("/api/v1/comments", commentRouter)
 app.use("/api/v1/likes", likeRouter)
 app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
-
-// http://localhost:8000/api/v1/users/register
 
 export { app }
